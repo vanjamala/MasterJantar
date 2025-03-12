@@ -145,3 +145,35 @@ if uploaded_pn is not None and st.button("Obradite datoteku putnih naloga"):  # 
         file_name="processed_pn_data.xlsx",
         mime="application/vnd.ms-excel"
     )
+
+# Only show merge button when all three files are uploaded
+if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_pn is not None:
+    if st.button('Merge Data and Generate Report'):
+        # Merge MasterTeam and Jantar data (keeping all rows from both)
+        merged_df_master_jantar = melted_master.merge(df_J_cleaned, left_on=["PREZIME i IME", "Day"], 
+                                                     right_on=["Korisnik", "Datum"], how="outer")
+
+        # Now merge with PN data
+        merged_result = pd.merge(
+            merged_df_master_jantar, 
+            df_expanded, 
+            left_on=["PREZIME i IME", "Day"], 
+            right_on=["Prezime Ime", "Datum"], 
+            how="outer"
+        )
+        
+        # Display the merged result
+        st.write(merged_result)
+        
+        # Allow downloading the merged data
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            merged_result.to_excel(writer, index=False, sheet_name="Merged Report")
+        output.seek(0)
+
+        st.download_button(
+            label="Download Merged Report",
+            data=output,
+            file_name="merged_report.xlsx",
+            mime="application/vnd.ms-excel"
+        )    
