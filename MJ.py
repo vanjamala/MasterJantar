@@ -1,10 +1,4 @@
 import streamlit as st
-
-st.title("🎈 Provjera sati")
-st.write(
-    "Provjeri sate rada."
-)
-
 import pandas as pd
 from io import BytesIO
 
