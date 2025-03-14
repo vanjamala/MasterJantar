@@ -359,6 +359,8 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     filtered_report_1 = filtered_report_1[filtered_report_1['Full_Date'] <= last_date_in_jantar]
 
     # Display filtered report 1
+    if filtered_report_1.empty:
+        st.write("⚠️ Filtered report is empty!")
     st.write(filtered_report_1)
 
     # Allow downloading the filtered report 1
