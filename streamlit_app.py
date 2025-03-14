@@ -12,24 +12,43 @@ uploaded_pn = st.file_uploader("Učitajte datoteku službenih putovanja", type=[
 
 # Process MasterTeam file
 if uploaded_masterteam is not None and st.button("Obradi MasterTeam"):
+    # df_master is loaded from the Excel file
     df_master = pd.read_excel(uploaded_masterteam, header=3)
+    df_master = df_master.drop(columns=[df_master.columns[0]])
 
-    # Process MasterTeam file (same logic as before)
-    df_master = df_master.drop(columns=[df_master.columns[0]])  
+    # Reset index after dropping rows to avoid index gaps
     df_master = df_master.reset_index(drop=True)
-    df_master['Rbr'] = pd.to_numeric(df_master['Rbr'], errors='coerce')
-    df_master = df_master.dropna(subset=['Rbr'])
+
+    # Remove rows where the "Rbr" column is not a number
+    df_master['Rbr'] = pd.to_numeric(df_master['Rbr'], errors='coerce')  # Convert "Rbr" to numeric, invalid entries become NaN
+    df_master = df_master.dropna(subset=['Rbr'])  # Drop rows where "Rbr" is NaN
+
+    # Reset the index after dropping rows
+    df_master = df_master.reset_index(drop=True)
+
+    # Drop rows where "Rbr" or any numeric columns are greater than 1000
     df_master = df_master[df_master['Rbr'] <= 1000]
-    df_master = df_master.loc[:, ~df_master.columns.str.contains('^Unnamed|^$', na=False)]
+
+    # Reset the index after dropping rows
     df_master = df_master.reset_index(drop=True)
 
-    # Extract columns
+    # Drop columns with names that contain "Unnamed" or are blank
+    df_master = df_master.loc[:, ~df_master.columns.str.contains('^Unnamed|^$', na=False)]
+
+    # Reset the index after dropping the columns
+    df_master = df_master.reset_index(drop=True)
+
+    # Identify unique persons based on the first two columns (Rbr and PREZIME i IME)
     personal_data_columns = ["Rbr", "PREZIME i IME"]
+
+    # Extract only the day columns (Su 1 to Pe 31)
     day_columns = [col for col in df_master.columns if any(str(i) in col for i in range(1, 32))]
-    
-    # Reshape data
+
+    # Melt the day columns into rows (long format)
     melted_master = pd.melt(df_master, id_vars=personal_data_columns, value_vars=day_columns,
-                            var_name="Day", value_name="Value")
+                        var_name="Day", value_name="Value")
+
+    # Clean up the "Day" column to only include the day number (e.g., '1', '2', etc.)
     melted_master['Day'] = melted_master['Day'].str.extract('(\d+)')
 
     # Save as Excel
@@ -149,15 +168,46 @@ if uploaded_pn is not None and st.button("Obradite datoteku putnih naloga"):  # 
 # Check if all three files are uploaded and the button is clicked
 if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_pn is not None and st.button('Merge Data and Generate Report'):
     df_master = pd.read_excel(uploaded_masterteam, header=3)
+    # df_master is loaded from the Excel file
+    df_master = df_master.drop(columns=[df_master.columns[0]])
 
-    # Process MasterTeam file (same logic as before)
-    df_master = df_master.drop(columns=[df_master.columns[0]])  
+    # Reset index after dropping rows to avoid index gaps
     df_master = df_master.reset_index(drop=True)
-    df_master['Rbr'] = pd.to_numeric(df_master['Rbr'], errors='coerce')
-    df_master = df_master.dropna(subset=['Rbr'])
+
+    # Remove rows where the "Rbr" column is not a number
+    df_master['Rbr'] = pd.to_numeric(df_master['Rbr'], errors='coerce')  # Convert "Rbr" to numeric, invalid entries become NaN
+    df_master = df_master.dropna(subset=['Rbr'])  # Drop rows where "Rbr" is NaN
+
+    # Reset the index after dropping rows
+    df_master = df_master.reset_index(drop=True)
+
+    # Drop rows where "Rbr" or any numeric columns are greater than 1000
     df_master = df_master[df_master['Rbr'] <= 1000]
-    df_master = df_master.loc[:, ~df_master.columns.str.contains('^Unnamed|^$', na=False)]
+
+    # Reset the index after dropping rows
     df_master = df_master.reset_index(drop=True)
+
+    # Drop columns with names that contain "Unnamed" or are blank
+    df_master = df_master.loc[:, ~df_master.columns.str.contains('^Unnamed|^$', na=False)]
+
+    # Reset the index after dropping the columns
+    df_master = df_master.reset_index(drop=True)
+
+    # Identify unique persons based on the first two columns (Rbr and PREZIME i IME)
+    personal_data_columns = ["Rbr", "PREZIME i IME"]
+
+    # Extract only the day columns (Su 1 to Pe 31)
+    day_columns = [col for col in df_master.columns if any(str(i) in col for i in range(1, 32))]
+
+    # Melt the day columns into rows (long format)
+    melted_master = pd.melt(df_master, id_vars=personal_data_columns, value_vars=day_columns,
+                        var_name="Day", value_name="Value")
+
+    # Clean up the "Day" column to only include the day number (e.g., '1', '2', etc.)
+    melted_master['Day'] = melted_master['Day'].str.extract('(\d+)')
+
+    # The melted_master dataframe is now ready for further processing
+
 
     # Extract columns
     personal_data_columns = ["Rbr", "PREZIME i IME"]
@@ -167,6 +217,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     melted_master = pd.melt(df_master, id_vars=personal_data_columns, value_vars=day_columns,
                             var_name="Day", value_name="Value")
     melted_master['Day'] = melted_master['Day'].str.extract('(\d+)')
+    #transform Jantar data
     df_J = pd.read_excel(uploaded_jantar, header=None)
 
     metadata = {}
@@ -284,4 +335,42 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
         data=output,
         file_name="merged_report.xlsx",
         mime="application/vnd.ms-excel"
-    )    
+    )   
+
+    # First report (1. Odsutni prema Jantaru)
+
+    # First, let's filter merged_result to take the first non-null value for 'Statistika' for each person and date
+    merged_result['Statistika'] = merged_result.groupby(['PREZIME i IME', 'Full_Date'])['Statistika'].transform(lambda x: x.dropna().iloc[0] if not x.dropna().empty else None)
+    # Filter 'Statistika' to include only 'Odsutan' or no value (NaN)
+    filtered_report_1 = merged_result[
+        (merged_result['Statistika'] == 'Odsutan') | 
+        (merged_result['Statistika'].isna())
+    ]
+    # Convert 'Value' column to numeric, setting errors='coerce' to turn non-numeric values into NaN
+    filtered_report_1['Value'] = pd.to_numeric(filtered_report_1['Value'], errors='coerce')
+    # Filter 'Razlog odsutnosti' to be NaN
+    filtered_report_1 = filtered_report_1[filtered_report_1['Razlog odsutnosti'].isna()]
+    # Filter 'Value' to be numeric (remove NaN values)
+    filtered_report_1 = filtered_report_1[filtered_report_1['Value'].notna()]
+    # Get the last date in df_J_cleaned
+    last_date_in_jantar = df_J_cleaned['Datum'].max()
+
+    # Filter 'Full_Date' to be less than or equal to the max date from df_J_cleaned
+    filtered_report_1 = filtered_report_1[filtered_report_1['Full_Date'] <= last_date_in_jantar]
+
+    # Display filtered report 1
+    st.write(filtered_report_1)
+
+    # Allow downloading the filtered report 1
+    output_filtered_1 = BytesIO()
+    with pd.ExcelWriter(output_filtered_1, engine='xlsxwriter') as writer:
+        filtered_report_1.to_excel(writer, index=False, sheet_name="1. Odsutni prema Jantaru")
+    output_filtered_1.seek(0)
+
+    st.download_button(
+        label="Download 1. Odsutni prema Jantaru",
+        data=output_filtered_1,
+        file_name="1_odsutni_prema_jantaru.xlsx",
+        mime="application/vnd.ms-excel"
+    )
+ 
