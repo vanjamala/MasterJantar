@@ -166,7 +166,7 @@ if uploaded_pn is not None and st.button("Obradite datoteku putnih naloga"):  # 
     )
 
 # Check if all three files are uploaded and the button is clicked
-if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_pn is not None and st.button('Merge Data and Generate Report'):
+if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_pn is not None and st.button('Spoji podatke i pripremi izvještaj'):
     df_master = pd.read_excel(uploaded_masterteam, header=3)
     # df_master is loaded from the Excel file
     df_master = df_master.drop(columns=[df_master.columns[0]])
@@ -331,7 +331,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     output.seek(0)
 
     st.download_button(
-        label="Download Merged Report",
+        label="Preuzmi spojene tablice",
         data=output,
         file_name="merged_report.xlsx",
         mime="application/vnd.ms-excel"
@@ -370,7 +370,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     output_filtered_1.seek(0)
 
     st.download_button(
-        label="Download 1. Odsutni prema Jantaru",
+        label="Preuzmi 1. Odsutni prema Jantaru",
         data=output_filtered_1,
         file_name="1_odsutni_prema_jantaru.xlsx",
         mime="application/vnd.ms-excel"
