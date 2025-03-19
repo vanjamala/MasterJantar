@@ -339,13 +339,20 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
 
     # First report (1. Odsutni prema Jantaru)
 
-    # First, let's filter merged_result to take the first non-null value for 'Statistika' for each person and date
-    merged_result['Statistika'] = merged_result.groupby(['PREZIME i IME', 'Full_Date'])['Statistika'].transform(lambda x: x.dropna().iloc[0] if not x.dropna().empty else None)
+    # Make a copy of the merged_result to preserve the original DataFrame
+    merged_result_copy = merged_result.copy()
+
+    # Filter merged_result_copy to take the first non-null value for 'Statistika' for each person and date
+    merged_result_copy['Statistika'] = merged_result_copy.groupby(['PREZIME i IME', 'Full_Date'])['Statistika'].transform(
+        lambda x: x.dropna().iloc[0] if not x.dropna().empty else None
+    )
+
     # Filter 'Statistika' to include only 'Odsutan' or no value (NaN)
-    filtered_report_1 = merged_result[
-        (merged_result['Statistika'] == 'Odsutan') | 
-        (merged_result['Statistika'].isna())
+    filtered_report_1 = merged_result_copy[
+        (merged_result_copy['Statistika'] == 'Odsutan') | 
+        (merged_result_copy['Statistika'].isna())
     ]
+
     # Convert 'Value' column to numeric, setting errors='coerce' to turn non-numeric values into NaN
     filtered_report_1['Value'] = pd.to_numeric(filtered_report_1['Value'], errors='coerce')
     # Filter 'Razlog odsutnosti' to be NaN
@@ -375,4 +382,52 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
         file_name="1_odsutni_prema_jantaru.xlsx",
         mime="application/vnd.ms-excel"
     )
- 
+    # Second report (1. Odsutni prema MasterTeam)
+
+    # Filter merged_result to take the first non-null value for 'Statistika' for each person and date
+    #merged_result['Statistika'] = merged_result.groupby(['PREZIME i IME', 'Full_Date'])['Statistika'].transform(
+    #    lambda x: x.dropna().iloc[0] if not x.dropna().empty else None
+    #)
+
+    # Get the last date in df_J_cleaned (same as in the first report)
+    last_date_in_jantar = df_J_cleaned['Datum'].max()
+
+    filtered_report_2 = merged_result[
+        (merged_result['Statistika'].notna()) &  # Statistika must not be NaN
+        (merged_result['Statistika'] != 'Odsutan') &  # Statistika must not be 'Odsutan'
+        (merged_result['Statistika'] != 'Vikend') # Statistika must not be Vikend
+    ]
+
+    # Keep only non-numeric values in 'Value'
+    # We use `apply(pd.to_numeric, errors='coerce')` to attempt converting the 'Value' to numeric,
+    # and keep the original non-numeric values by filtering rows where the converted value is NaN.
+    filtered_report_2['Value_is_numeric'] = pd.to_numeric(filtered_report_2['Value'], errors='coerce').notna()
+
+    # Filter rows where 'Value' is not numeric (the conversion resulted in NaN)
+    filtered_report_2_non_numeric_value = filtered_report_2[~filtered_report_2['Value_is_numeric']]
+
+    # Get the last date in df_J_cleaned
+    last_date_in_jantar = df_J_cleaned['Datum'].max()
+
+    # Filter 'Full_Date' to be less than or equal to the max date from df_J_cleaned
+    filtered_report_2_non_numeric_value = filtered_report_2_non_numeric_value[
+        filtered_report_2_non_numeric_value['Full_Date'] <= last_date_in_jantar
+    ]
+
+    # Display filtered report 2
+    if filtered_report_2_non_numeric_value.empty:
+        st.write("⚠️ Filtered report is empty!")
+    st.write(filtered_report_2_non_numeric_value)
+
+    # Allow downloading the filtered report 2
+    output_filtered_2 = BytesIO()
+    with pd.ExcelWriter(output_filtered_2, engine='xlsxwriter') as writer:
+        filtered_report_2_non_numeric_value.to_excel(writer, index=False, sheet_name="1. Odsutni prema MasterTeam")
+    output_filtered_2.seek(0)
+
+    st.download_button(
+        label="Preuzmi 1. Odsutni prema MasterTeam",
+        data=output_filtered_2,
+        file_name="1_odsutni_prema_masterteam.xlsx",
+        mime="application/vnd.ms-excel"
+    )
