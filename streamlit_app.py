@@ -388,7 +388,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     st.download_button(
         label="Preuzmi 1. Odsutni prema Jantaru",
         data=output_filtered_1,
-        file_name="1_odsutni_prema_jantaru.xlsx",
+        file_name="1. Odsutni prema Jantaru.xlsx",
         mime="application/vnd.ms-excel"
     )
     # Second report (1. Odsutni prema MasterTeam)
@@ -435,8 +435,8 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     output_filtered_2.seek(0)
 
     st.download_button(
-        label="Preuzmi 1. Odsutni prema MasterTeam",
+        label="Preuzmi 1. Odsutni prema MasterTeamu",
         data=output_filtered_2,
-        file_name="1_odsutni_prema_masterteam.xlsx",
+        file_name="1. Odsutni prema MasterTeam.xlsx",
         mime="application/vnd.ms-excel"
     )
