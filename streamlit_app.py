@@ -74,6 +74,7 @@ if uploaded_jantar and st.button("Obradi Jantar"):
     # Loop through rows
     for index, row in df_J.iterrows():
         first_col = str(row.iloc[0]).strip()
+        print(first_col)
         second_col = row.iloc[1] if len(row) > 1 else None
 
         if first_col in ["Korisnik", "Razdoblje", "Odjel", "Raspored", "Kartica korisnika"]:
@@ -83,8 +84,13 @@ if uploaded_jantar and st.button("Obradi Jantar"):
         elif first_col in ["Prekovremeno", "Stimulacija", "Stanje", "Prijenos", "Godišnji", "Stari godišnji",
                            "Dvokratni rad", "Broj obroka", "Broj prijevoza"]:
             metadata[first_col] = second_col
-        elif first_col in ["Statistika", "Vrijeme", "Ukupno", "Vremenski razrez", "Vrijeme"]:
+        elif first_col in ["Statistika", "Vrijeme", "Ukupno", "Vremenski razrez", "Vrijeme", ""]:
             continue  # Skip these
+        # Ignore rows where "Vremenski razrez" is in the 5th column, "Vrijeme" is in the 5th column, 
+        # or "Ukupno" is in the 6th column (as they are not part of the actual data section)
+        elif row.iloc[4] in ["Vremenski razrez", "Vrijeme"] or row.iloc[5] == "Ukupno":
+            continue  # Skip these rows as they are not part of the actual data
+        
         elif not first_col:
             continue
         elif first_col == "Dan":
@@ -240,6 +246,9 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
             continue  # Skip these
         elif not first_col:
             continue
+        elif row.iloc[4] in ["Vremenski razrez", "Vrijeme"] or row.iloc[5] == "Ukupno":
+            continue  # Skip these rows as they are not part of the actual data
+        
         elif first_col == "Dan":
             current_section = {**metadata}
             continue
