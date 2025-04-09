@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import re
 
 st.title("🎈 Provjera sati")
 st.write("Provjeri sate rada.")
@@ -173,6 +174,27 @@ if uploaded_pn is not None and st.button("Obradite datoteku putnih naloga"):  # 
 
 # Check if all three files are uploaded and the button is clicked
 if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_pn is not None and st.button('Spoji podatke i pripremi izvještaj'):
+    # Load the Excel file without specifying the header
+    df_raw = pd.read_excel(uploaded_masterteam, header=None)  # Load without setting header
+
+    # Extract the text from row 2 (index 1), second column (index 1)
+    row_2_text = df_raw.iloc[1, 1]  # Row 2 (index 1), second column (index 1)
+
+    # Print the raw text to debug the content
+    print(f"Row 2, Column 2 content: '{row_2_text}'")
+
+    # Clean the text by stripping extra spaces or special characters
+    cleaned_text = str(row_2_text).strip()
+
+    # Use regular expression to extract MM.YYYY. format (with dot after year)
+    month_year_match = re.search(r'(\d{2})\.(\d{4})\.', cleaned_text)
+
+    if month_year_match:
+        month_MT = month_year_match.group(1)  # Extracted month
+        year_MT = month_year_match.group(2)   # Extracted year
+#     print(f"Month: {month}, Year: {year}")
+
+    
     df_master = pd.read_excel(uploaded_masterteam, header=3)
     # df_master is loaded from the Excel file
     df_master = df_master.drop(columns=[df_master.columns[0]])
@@ -311,7 +333,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     month = int(df_J_cleaned["Datum"].dt.month.iloc[0])
 
     # Create a full date in melted_data by combining year, month, and "Day"
-    melted_master["Full_Date"] = pd.to_datetime(melted_master["Day"].astype(str) + f"-{month}-{year}", format="%d-%m-%Y")
+    melted_master["Full_Date"] = pd.to_datetime(melted_master["Day"].astype(str) + f"-{month_MT}-{year_MT}", format="%d-%m-%Y")
 
     # Merge both DataFrames on Employee Name and Date
     merged_df = melted_master.merge(df_J_cleaned, left_on=["PREZIME i IME", "Full_Date"], right_on=["Korisnik", "Datum"], how="left")
