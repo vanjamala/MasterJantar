@@ -351,7 +351,12 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     )
     # Keep only the required columns
     merged_result = merged_result[["PREZIME i IME", "Full_Date", "Razlog odsutnosti", "Value", "Statistika"]]
-        
+    # Rename columns in merged_result_copy
+    merged_result = merged_result.rename(columns={
+        "Razlog odsutnosti": "Konto",
+        "Value": "MasterTeam",
+        "Statistika": "Jantar"
+    })  
     # Display the merged result
     st.write(merged_result)
         
@@ -395,7 +400,12 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
 
     # Filter 'Full_Date' to be less than or equal to the max date from df_J_cleaned
     filtered_report_1 = filtered_report_1[filtered_report_1['Full_Date'] <= last_date_in_jantar]
-
+    # Rename columns in filtered_report_1
+    filtered_report_1 = filtered_report_1.rename(columns={
+        "Razlog odsutnosti": "Konto",
+        "Value": "MasterTeam",
+        "Statistika": "Jantar"
+    })
     # Display filtered report 1
     if filtered_report_1.empty:
         st.write("⚠️ Filtered report is empty!")
@@ -444,6 +454,12 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     filtered_report_2_non_numeric_value = filtered_report_2_non_numeric_value[
         filtered_report_2_non_numeric_value['Full_Date'] <= last_date_in_jantar
     ]
+    # Rename columns in filtered_report_2
+    filtered_report_2 = filtered_report_2.rename(columns={
+        "Razlog odsutnosti": "Konto",
+        "Value": "MasterTeam",
+        "Statistika": "Jantar"
+    })
 
     # Display filtered report 2
     if filtered_report_2_non_numeric_value.empty:
