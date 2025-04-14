@@ -347,7 +347,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
         merged_df, df_expanded,
         left_on=["PREZIME i IME", "Full_Date"],
         right_on=["Prezime Ime", "Datum"],
-        how="outer"
+        how="left"
     )
     # Keep only the required columns
     merged_result = merged_result[["PREZIME i IME", "Full_Date", "Razlog odsutnosti", "Value", "Statistika"]]
