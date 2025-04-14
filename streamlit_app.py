@@ -352,18 +352,19 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
     # Keep only the required columns
     merged_result = merged_result[["PREZIME i IME", "Full_Date", "Razlog odsutnosti", "Value", "Statistika"]]
     # Rename columns in merged_result_copy
-    merged_result = merged_result.rename(columns={
+    merged_result_output = merged_result.copy()
+    merged_result_output = merged_result_output.rename(columns={
         "Razlog odsutnosti": "Konto",
         "Value": "MasterTeam",
         "Statistika": "Jantar"
     })  
     # Display the merged result
-    st.write(merged_result)
+    st.write(merged_result_output)
         
     # Allow downloading the merged data
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        merged_result.to_excel(writer, index=False, sheet_name="Merged Report")
+        merged_result_output.to_excel(writer, index=False, sheet_name="Merged Report")
     output.seek(0)
 
     st.download_button(
