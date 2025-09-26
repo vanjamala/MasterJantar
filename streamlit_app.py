@@ -157,7 +157,8 @@ if uploaded_pn is not None and st.button("Obradite datoteku putnih naloga"):  # 
 
     # Convert the list of rows into a DataFrame
     df_expanded = pd.DataFrame(expanded_rows)
-
+    df_expanded['Prezime Ime'] = df_expanded['Prezime Ime'].str.strip().str.upper()
+    
     # Provide a download button for the processed Excel file
     output_pn = BytesIO()
     with pd.ExcelWriter(output_pn, engine='xlsxwriter') as writer:
@@ -324,7 +325,7 @@ if uploaded_masterteam is not None and uploaded_jantar is not None and uploaded_
 
     # Convert the list of rows into a DataFrame
     df_expanded = pd.DataFrame(expanded_rows)
-
+    df_expanded['Prezime Ime'] = df_expanded['Prezime Ime'].str.strip().str.upper()
     # Ensure 'Datum' in df_J_cleaned is in datetime format
     df_J_cleaned["Datum"] = pd.to_datetime(df_J_cleaned["Datum"], dayfirst=True)
 
